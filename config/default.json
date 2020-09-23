@@ -1,0 +1,6 @@
+{
+    "name":"express app - default",
+    "main":{
+        "url":"def-url"
+    }
+}

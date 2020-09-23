@@ -1,86 +1,42 @@
+
+const config = require('config')
+const startupDebugger = require('debug')('app:startup')
 const express = require('express');
+const morgan = require('morgan');
 const Joi = require('joi');
+const Log = require('./middleware/logger');
+const courses = require('./routes/courses')
 const app = express();
+
+
+app.set('view engine', 'pug');
+app.set('views', './views')
 app.use(express.json());
+app.use(express.urlencoded({extended:true}));
+app.use(express.static('public'));
+
+app.use('/api/courses', courses)
+
+console.log("app name" +  config.get('name'))
+
+if (app.get('env') === 'development'){
+    app.use(morgan('tiny'));
+    console.log('morgan enabled...');
+    startupDebugger("debugging started")
+}
 
 
-var courses = [
-    {id: 1, name: 'course1'},
-    {id: 2, name: 'course2'},
-    {id: 3, name: 'course3'}
+app.use(function(req,res,next){
+    console.log("Logging")
+    next()
+});
 
-]
+app.use(Log);
+
 
 app.get('/', (req, res) => {
-    res.send({"message":"recieved"})
+    res.render('index', {title:'My express', message:'hello'})
 });
-
-app.get('/api/courses', (req, res) => {
-    res.send(courses)
-});
-
-app.get('/api/courses/:id', (req, res) => {
-    const id = req.params.id
-    const course = courses.find(c => c.id === parseInt(id));
-    if (!course) res.status(404).send('The course not found');
-
-    res.send(course)
-});
-
-
-app.post('/api/courses', (req, res) => {
-
-    const schema = {
-        name: Joi.string().min(3).required()
-    };
-    const result = Joi.validate(req.body, schema);
-
-    if (result.error) {
-        res.status(400).send(result.error);
-        return;
-    }
-
-    const course = {
-        id: courses.length+1,
-        name: req.body.name
-    };
-    courses.push(course)
-    res.send(course)
-});
-
-
-app.put('/api/courses/:id', (req, res) => {
-    const id = req.params.id
-    const course = courses.find(c => c.id === parseInt(id));
-    if (!course) {return res.status(404).send('The course not found');}
-
-    const schema = {
-        name: Joi.string().min(3).required()
-    };
-    const result = Joi.validate(req.body, schema);
-
-    if (result.error) {
-        res.status(400).send(result.error);
-        return;
-    }
-
-    course.name = req.body.name
-    res.send(course)
-});
-
-app.delete('/api/courses/:id', (req, res) => {
-    const id = req.params.id
-    const course = courses.find(c => c.id === parseInt(id));
-    if (!course) {
-        res.status(404).send('The course not found');
-        return
-    }
-
-    const index = courses.indexOf(course)
-    courses.splice(index,1)
-    res.send(course)
-});
-
 
 const port = process.env.PORT || 3000
 app.listen(port, ()=>console.log(`listenig on ${port}`))

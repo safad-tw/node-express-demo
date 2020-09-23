@@ -1,0 +1,6 @@
+{
+    "name":"express app - dev",
+    "main":{
+        "url":"dev-url"
+    }
+}
