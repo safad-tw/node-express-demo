@@ -1,42 +1,71 @@
-
-const config = require('config')
-const startupDebugger = require('debug')('app:startup')
+const mongoose = require('mongoose');
+const courses = require('./routes/courses');
 const express = require('express');
-const morgan = require('morgan');
-const Joi = require('joi');
-const Log = require('./middleware/logger');
-const courses = require('./routes/courses')
 const app = express();
 
+mongoose.connect('mongodb://mongo:27017/mongo-demo')
+  .then(() => console.log('Connected to MongoDB...'))
+  .catch(err => console.error('Could not connect to MongoDB...'));
 
-app.set('view engine', 'pug');
-app.set('views', './views')
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
-app.use(express.static('public'));
+app.use('/api/courses', courses);
 
-app.use('/api/courses', courses)
-
-console.log("app name" +  config.get('name'))
-
-if (app.get('env') === 'development'){
-    app.use(morgan('tiny'));
-    console.log('morgan enabled...');
-    startupDebugger("debugging started")
-}
+const port = process.env.PORT || 8000;
+app.listen(port, () => console.log(`Listening on port ${port}...`));
 
 
-app.use(function(req,res,next){
-    console.log("Logging")
-    next()
-});
 
-app.use(Log);
+// const courseSchema = new mongoose.Schema({
+//     name: {type: String, required: true, minlength:5, maxlength:20},
+//     author: String,
+//     tags: {
+//         type: Array,
+//         validate: {
+//             validator: function(v){
+//                 return v && v.length > 0
+//             },
+//             message: 'should have at least 1 category'
+//         }
+//     },
+//     date: {type: Date, default: Date.now}
+// });
 
+// async function createCourse() {
+//     const Course = mongoose.model('Course', courseSchema)
+//     const course = new Course({
+//         name: 'node js',
+//         author: 'safad',
+//         tags: ['node', 'backend'],
+//     });
 
-app.get('/', (req, res) => {
-    res.render('index', {title:'My express', message:'hello'})
-});
+//     const course1 = new Course({
+//         name: 'node js1',
+//         author: 'safad1',
+//         tags: ['node1', 'backend1'],
+//     });
 
-const port = process.env.PORT || 3000
-app.listen(port, ()=>console.log(`listenig on ${port}`))
+//     const result = await course.save();
+//     const result1 = await course1.save();
+//     console.log(result);
+//     console.log(result1);
+// }
+
+// async function getCourses(){
+//     const courses = await Course.find({author:'safad'}).limit(10).sort({name: 1}).select({name:1, tags:1});
+//     console.log(courses)
+// }
+
+// async function updateCourse(id){
+//     const result = await Course.update({_id:id }, {$set: {
+//       author: 'Safad'
+//     }});
+//     console.log(result)
+// }
+
+// async function removeCourse(id){
+//     const result = await Course.deleteOne({_id:id });
+//     console.log(result) 
+// }
+
+// createCourse()
+// getCourses()
