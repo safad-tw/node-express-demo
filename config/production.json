@@ -1,6 +1,0 @@
-{
-    "name":"express app - prod",
-    "main":{
-        "url":"prod-url"
-    }
-}
